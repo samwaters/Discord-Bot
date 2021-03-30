@@ -23,6 +23,7 @@ export interface IServer {
   broadcastEvent(eventType: MessageIntents, event: any)
   getConfig(): IConfig
   getIntent(): number
+  getModules(): IModule[]
   getToken(): string
   registerModule(module: IModule): boolean
   sendMessage(messageType: MessageTypes, message: IPayload)
@@ -108,6 +109,10 @@ export class Server implements IServer {
 
   public getIntent(): number {
     return this.intent
+  }
+
+  public getModules(): IModule[] {
+    return this.modules
   }
 
   public getToken(): string {

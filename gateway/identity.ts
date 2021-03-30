@@ -6,8 +6,8 @@ export const createIdentityPayload = (token: string, intents: number): IPayload 
     token: token,
     properties: {
       '$os': 'mac',
-      '$browser': 'raffle-bot',
-      '$device': 'raffle-bot'
+      '$browser': 'squirt-bot',
+      '$device': 'squirt-bot'
     },
     compress: false,
     large_threshold: 50,
@@ -15,7 +15,7 @@ export const createIdentityPayload = (token: string, intents: number): IPayload 
     shard: [0, 1],
     presence: {
       game: {
-        name: '!raffle help',
+        name: 'the long game',
         type: 0
       },
       status: 'online',

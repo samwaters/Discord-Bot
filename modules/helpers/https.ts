@@ -1,3 +1,4 @@
+import axios from 'axios'
 import * as https from "https"
 
 export const httpsGet = (host: string, path: string = '/') => new Promise<string>((resolve, reject) => {
@@ -19,3 +20,9 @@ export const httpsGet = (host: string, path: string = '/') => new Promise<string
   req.on('error', reject)
   req.end()
 })
+
+export const get = async (path: string, headers = {}) => {
+  const response = await axios.get(path, {headers})
+  if(response.status !== 200) throw new Error(response.data)
+  return response.data
+}

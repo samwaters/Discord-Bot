@@ -1,5 +1,10 @@
 import {IServer} from '../../server'
 
+interface ImageDimensions {
+  height: number
+  width: number
+}
+
 class MessageHelper {
   private static server: IServer
 
@@ -31,6 +36,23 @@ class MessageHelper {
       'POST',
       JSON.stringify({
         content: message,
+        tts: false
+      })
+    )
+  }
+
+  static sendEmbeddedImage(channel: string, imageUrl: string, dimensions?: ImageDimensions): Promise<string> {
+    dimensions = dimensions ? dimensions : { height: 500, width: 500 }
+    return MessageHelper.server.restAPI.request(
+      `channels/${channel}/messages`,
+      'POST',
+      JSON.stringify({
+        embed: {
+          image: {
+            ...dimensions,
+            url: imageUrl
+          }
+        },
         tts: false
       })
     )

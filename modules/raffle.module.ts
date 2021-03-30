@@ -5,6 +5,7 @@ import MessageHelper from './helpers/messagehelper'
 
 interface RaffleData {
   admins: string[]
+  bonusTickets: number
   created: string
   maxTickets: number
   owner: string
@@ -21,7 +22,7 @@ interface RaffleTicket {
 class RaffleModule implements IModule {
   private server: IServer
   public name: string = 'Raffle'
-  public version: string = '1.0.9'
+  public version: string = '1.1.0'
 
   constructor(server: IServer) {
     this.server = server
@@ -353,7 +354,7 @@ class RaffleModule implements IModule {
       }
       ticketMessages.push(ticketMessage)
     })
-    ticketMessages.push(`\n**Admin tickets are automatically excluded from the draw**`)
+    ticketMessages.push(`\n**Raffle-admin tickets are automatically excluded from the draw**`)
     ticketMessages.push(`Total: ${ticketCount}`)
     messagesToSend.push(ticketMessages.join('\n'))
     await MessageHelper.sendMultipleMessages(message.channelId, messagesToSend)
@@ -381,8 +382,9 @@ class RaffleModule implements IModule {
       `raffle.${message.guildId}.details.${command[0]}`,
       JSON.stringify({
         admins: [],
+        bonusTickets: 100,
         created: new Date().toISOString(),
-        maxTickets: command[1] ? parseInt(command[1]) : 10,
+        maxTickets: command[1] ? parseInt(command[1]) : 20,
         owner: message.from.id,
         status: 'OPEN',
         ticketPrice: command[2] || '5k'
@@ -410,6 +412,9 @@ class RaffleModule implements IModule {
           break
         case 'ADDTICKETS':
           this.addTickets(message, parts.slice(2))
+          break
+        case 'BONUSTICKETS':
+          this.setBonusTickets(message, parts.slice(2))
           break
         case 'CREATE':
           this.newRaffle(message, parts.slice(2))
@@ -463,6 +468,7 @@ class RaffleModule implements IModule {
 \`addadmin\` _<raffle name>_ _<admin>_ - Adds an admin to the raffle
 \`addprize\` _<raffle name>_ _<prize>_ - Adds a prize to the raffle
 \`addtickets\` _<raffle name>_ _<name>_ _<number>_ - Adds tickets to the raffle
+\`bonustickets\` _<raffle name>_ _<number>_ - Set the number of tickets required to add a new bonus prize
 \`create\` _<raffle name>_ - Creates a new raffle
 \`delete\` _<raffle name>_ - Deletes a raffle
 \`deleteprize\` _<raffle name>_ _<prize name>_ - Deletes a prize
@@ -508,7 +514,7 @@ ${prizeStr}
 Tickets sold: ${ticketCount}
 
 **To buy tickets, deposit ${raffleData.ticketPrice} into the guild bank, up to a maximum of ${raffleData.maxTickets}**
-Bonus prizes added for every 50 tickets sold! 
+Bonus prizes added for every ${raffleData.bonusTickets} tickets sold! 
 `
     )
   }
@@ -535,6 +541,26 @@ Bonus prizes added for every 50 tickets sold!
       JSON.stringify(updatedRaffleData)
     )
     await MessageHelper.sendMessage(message.channelId, `Max tickets set to ${command[1]} for raffle ${command[0]}`)
+  }
+
+  private async setBonusTickets(message: TextMessage, command: string[]) {
+    if(command.length !== 2 || !/^\d+$/.test(command[1])) {
+      await MessageHelper.sendMessage(message.channelId, 'Usage: !raffle ticketprice <name> <price>')
+      return
+    }
+    const isValidOwnership = await this.checkRaffleOwnership(message, command[0], 'OPEN')
+    if (!isValidOwnership) return
+    const raffle = await this.server.redis.get(`raffle.${message.guildId}.details.${command[0]}`)
+    const raffleData: RaffleData = JSON.parse(raffle)
+    const updatedRaffleData: RaffleData = {
+      ...raffleData,
+      bonusTickets: parseInt(command[1])
+    }
+    this.server.redis.set(
+      `raffle.${message.guildId}.details.${command[0]}`,
+      JSON.stringify(updatedRaffleData)
+    )
+    MessageHelper.sendMessage(message.channelId, `Bonus tickets set to ${command[1]} for raffle ${command[0]}`)
   }
 
   private async setTicketPrice(message: TextMessage, command: string[]) {
