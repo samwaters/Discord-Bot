@@ -52,7 +52,7 @@ class CatModule implements IModule {
           this.getStaticCat(message)
           break
         default:
-          MessageHelper.sendMessage(message.channelId, `Unknown raffle command ${cmd}`)
+          MessageHelper.sendMessage(message.channelId, `Unknown cat command ${cmd}`)
           return false
       }
     }
