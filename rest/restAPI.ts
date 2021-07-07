@@ -30,7 +30,7 @@ export class RestAPI implements IRestAPI {
         res.on('error', reject)
       })
       req.on('error', reject)
-      if(method === 'POST') {
+      if(method === 'POST' || method === 'PATCH') {
         req.write(data)
       }
       req.end()

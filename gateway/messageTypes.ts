@@ -42,8 +42,11 @@ export interface MessageDetails {
     public_flags: number
     username: string
   }
+  bot: boolean
   channel_id: string
   content: string
+  components: string[]
+  discriminator: string
   edited_timestamp: string | null
   flags: number
   embeds: string[]
@@ -52,6 +55,7 @@ export interface MessageDetails {
   mentions: UserMentions[]
   mention_roles: string[]
   pinned: boolean
+  referenced_message?: MessageDetails
   timestamp: string
   tts: boolean
   type: number
@@ -69,4 +73,5 @@ export interface TextMessage {
   mentions: UserMentions[]
   mentionsEveryone: boolean
   mentionsRoles: string[]
+  referencedMessage?: TextMessage
 }

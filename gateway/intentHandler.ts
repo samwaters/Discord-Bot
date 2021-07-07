@@ -48,7 +48,20 @@ export class IntentHandler {
             id: message.d.id,
             mentions: message.d.mentions,
             mentionsEveryone: message.d.mention_everyone,
-            mentionsRoles: message.d.mention_roles
+            mentionsRoles: message.d.mention_roles,
+            referencedMessage: {
+              channelId: message.d.referenced_message?.channel_id,
+              content: message.d.refenced_message?.content,
+              from: {
+                id: message.d.referenced_message?.author.id,
+                name: message.d.referenced_message?.author.name
+              },
+              guildId: message.d.referenced_message?.guild_id,
+              id: message.d.referenced_message?.id,
+              mentions: message.d.referenced_message?.mentions,
+              mentionsEveryone: message.d.referenced_message?.mention_everyone,
+              mentionsRoles: message.d.referenced_message?.mention_roles,
+            },
           })
         }
         break
