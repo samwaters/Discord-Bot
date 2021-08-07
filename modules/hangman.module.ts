@@ -5,6 +5,7 @@ import {get} from './helpers/https'
 import MessageHelper from './helpers/messagehelper'
 import {UserInformation} from '../gateway/user'
 const fs = require('fs').promises
+const path = require('path')
 
 interface HangmanData {
     complete: boolean
@@ -13,6 +14,13 @@ interface HangmanData {
 }
 
 class HangmanModule implements IModule {
+    private levelMap = {
+        easy: [4,5,6],
+        medium: [7,8],
+        hard: [9,10],
+        difficult: [11,12,13],
+        extreme: [14,15,16]
+    }
     private maximumGuesses: number = 8
     private server: IServer
     public name: string = 'Hangman'
@@ -26,14 +34,16 @@ class HangmanModule implements IModule {
           )
     }
 
-    private async getWord() {
-        const words = await fs.readFile('/usr/share/dict/words', 'utf-8')
+    private async getWord(level: string) {
+        const levelRange = this.levelMap[level]
+        const length: number = Math.floor(Math.random() * ([...levelRange].pop() - levelRange[0] + 1)) + levelRange[0]
+        const words = await fs.readFile(path.join(__dirname, '..', 'data', 'words', `${length}letter.words`), 'utf-8')
         const wordArr: string[] = words.split('\n')
         return wordArr[Math.floor(Math.random() * wordArr.length)].toLowerCase()
     }
 
-    private async createHangman(message: TextMessage) {
-        const word: string = await this.getWord()
+    private async createHangman(message: TextMessage, level: string) {
+        const word: string = await this.getWord(level)
         const messageDetails = await MessageHelper.sendMessage(
             message.channelId,
             `${new Array(word.length).fill('?').join(' ')}\nGuesses Left: ${this.maximumGuesses}`
@@ -128,7 +138,12 @@ class HangmanModule implements IModule {
             return
         }
         this.server.logger.debug('Hangman module processing command')
-        this.createHangman(message)
+        const messageParts = message.content.split(' ')
+        if(messageParts.length !== 2 || !Object.keys(this.levelMap).includes(messageParts[1])) {
+            MessageHelper.sendMessage(message.channelId, 'Usage: !hangman <level>\nLevel can be `easy`, `medium`, `hard`, `difficult`, `extreme`')
+            return
+        }
+        this.createHangman(message, messageParts[1])
     }
 
     public receiveEvent(eventType: MessageIntents, event: any) {
